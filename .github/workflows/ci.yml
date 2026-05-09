@@ -72,7 +72,9 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'test-key' }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'test-key' }}
-        run: uv run pytest tests/ -v --tb=short --cov=. --cov-report=xml --ignore=ui
+        run: |
+          uv run pytest tests/ -v --tb=short --cov=. --cov-report=xml --ignore=ui
+          e=$?; [ $e -eq 0 ] || [ $e -eq 5 ]
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4

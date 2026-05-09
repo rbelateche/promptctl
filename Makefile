@@ -29,7 +29,7 @@ typecheck:
 
 # Run tests (mirrors CI); exit 5 = no tests collected, treated as pass
 test:
-	$(UV) run pytest tests/ -v --tb=short; e=$$?; [ $$e -eq 0 ] || [ $$e -eq 5 ]
+	$(UV) run pytest tests/ -v --tb=short --cov=. --cov-report=xml --ignore=ui; e=$$?; [ $$e -eq 0 ] || [ $$e -eq 5 ]
 
 # Run everything CI runs, in the same order
 ci: lint fmt typecheck test
