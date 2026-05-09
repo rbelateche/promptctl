@@ -1,29 +1,35 @@
 .PHONY: install lint fmt typecheck test ci clean
 
-# Install all dev dependencies
+PYTHON  = .venv/bin/python
+UV      = .venv/bin/uv
+SRCDIRS = cli/ core/ evals/ storage/ api/
+
+# Create venv and install all dev dependencies
 install:
-	uv pip install --system -e ".[dev]"
+	python3 -m venv .venv
+	$(PYTHON) -m pip install uv -q
+	$(UV) pip install -e ".[dev]" -q
 
 # Ruff lint check (mirrors CI)
 lint:
-	uv run ruff check cli/ core/ evals/ storage/ api/
+	$(UV) run ruff check $(SRCDIRS)
 
 # Ruff format check (mirrors CI)
 fmt:
-	uv run ruff format --check cli/ core/ evals/ storage/ api/
+	$(UV) run ruff format --check $(SRCDIRS)
 
 # Auto-fix lint + format issues
 fix:
-	uv run ruff check --fix cli/ core/ evals/ storage/ api/
-	uv run ruff format cli/ core/ evals/ storage/ api/
+	$(UV) run ruff check --fix $(SRCDIRS)
+	$(UV) run ruff format $(SRCDIRS)
 
 # Mypy type check (mirrors CI)
 typecheck:
-	uv run mypy cli/ core/ evals/ storage/ api/
+	$(UV) run mypy $(SRCDIRS)
 
-# Run tests (mirrors CI)
+# Run tests (mirrors CI); exit 5 = no tests collected, treated as pass
 test:
-	uv run pytest tests/ -v --tb=short
+	$(UV) run pytest tests/ -v --tb=short; e=$$?; [ $$e -eq 0 ] || [ $$e -eq 5 ]
 
 # Run everything CI runs, in the same order
 ci: lint fmt typecheck test

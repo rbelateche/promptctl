@@ -68,11 +68,12 @@ def get_commit(*, id: str, db_path: Path) -> Commit:
 
 
 def get_commit_by_prefix(*, prefix: str, db_path: Path) -> Commit:
-    """Fetch a commit by short hash prefix. Raises KeyError if none found, ValueError if ambiguous."""
+    """Fetch a commit by short hash prefix.
+
+    Raises KeyError if not found, ValueError if ambiguous.
+    """
     with get_connection(db_path) as conn:
-        rows = conn.execute(
-            "SELECT * FROM commits WHERE id LIKE ?", (f"{prefix}%",)
-        ).fetchall()
+        rows = conn.execute("SELECT * FROM commits WHERE id LIKE ?", (f"{prefix}%",)).fetchall()
     if not rows:
         raise KeyError(f"No commit matching prefix: {prefix!r}")
     if len(rows) > 1:
@@ -128,8 +129,6 @@ def walk_ancestors(*, commit_id: str, steps: int, db_path: Path) -> Commit:
             if row is None:
                 raise KeyError(f"Commit not found: {current_id!r}")
             if row["parent_id"] is None:
-                raise ValueError(
-                    f"Cannot walk {steps} steps: chain ends after {i} step(s)"
-                )
+                raise ValueError(f"Cannot walk {steps} steps: chain ends after {i} step(s)")
             current_id = row["parent_id"]
     return get_commit(id=current_id, db_path=db_path)

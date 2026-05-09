@@ -101,13 +101,9 @@ def restore_commit(
 
     # Re-hashing the same content produces the same id — we need to detect
     # that the current HEAD is already identical to the target.
-    current_head = commits_storage.get_head(
-        prompt_id=prompt_id, branch=branch, db_path=db_path
-    )
+    current_head = commits_storage.get_head(prompt_id=prompt_id, branch=branch, db_path=db_path)
     if current_head and current_head.id == target_id:
-        raise ValueError(
-            f"HEAD is already at {short_id(target_id)!r}. Nothing to restore."
-        )
+        raise ValueError(f"HEAD is already at {short_id(target_id)!r}. Nothing to restore.")
 
     return create_commit(
         prompt_id=prompt_id,
@@ -135,9 +131,7 @@ def resolve_ref(
     - ``<hash>``       — full or partial commit hash (min 4 chars)
     """
     if ref.upper().startswith("HEAD"):
-        head = commits_storage.get_head(
-            prompt_id=prompt_id, branch=branch, db_path=db_path
-        )
+        head = commits_storage.get_head(prompt_id=prompt_id, branch=branch, db_path=db_path)
         if head is None:
             raise ValueError(f"No commits on branch {branch!r} for prompt {prompt_id!r}")
 
@@ -150,9 +144,7 @@ def resolve_ref(
                 steps = int(suffix[1:])
             except ValueError:
                 raise ValueError(f"Invalid HEAD ref: {ref!r}")
-            return commits_storage.walk_ancestors(
-                commit_id=head.id, steps=steps, db_path=db_path
-            )
+            return commits_storage.walk_ancestors(commit_id=head.id, steps=steps, db_path=db_path)
 
         raise ValueError(f"Invalid HEAD ref: {ref!r}")
 

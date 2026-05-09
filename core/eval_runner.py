@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 @dataclass
 class EvalResult:
     metric: str
-    value: float       # 0.0–1.0 for ratios; seconds for latency
+    value: float  # 0.0–1.0 for ratios; seconds for latency
     n_cases: int
 
 
@@ -60,14 +60,17 @@ def _load_evaluator(strategy: str, config: EvalConfig) -> Evaluator:
     """
     if strategy == "exact_match":
         from evals.exact_match import ExactMatchEvaluator
+
         return ExactMatchEvaluator()
 
     if strategy == "embedding_similarity":
         from evals.embedding_sim import EmbeddingSimEvaluator
+
         return EmbeddingSimEvaluator(model=config.embedding_model)
 
     if strategy == "llm_judge":
         from evals.llm_judge import LLMJudgeEvaluator
+
         return LLMJudgeEvaluator(model=config.judge_model)
 
     raise ValueError(f"Unknown eval strategy: {strategy!r}")
