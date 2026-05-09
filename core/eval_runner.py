@@ -28,7 +28,7 @@ class EvalResult:
 
 @dataclass
 class EvalConfig:
-    strategies: list[str]                  # e.g. ["exact_match", "embedding_similarity", "llm_judge"]
+    strategies: list[str]  # e.g. ["exact_match", "embedding_similarity", "llm_judge"]
     judge_model: str = "gpt-4o"
     embedding_model: str = "text-embedding-3-small"
     metrics: dict[str, dict] | None = None  # weights per metric

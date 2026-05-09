@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -69,7 +68,7 @@ def get_commit(*, id: str, db_path: Path) -> Commit:
 
 
 def get_commit_by_prefix(*, prefix: str, db_path: Path) -> Commit:
-    """Fetch a commit by a short hash prefix. Raises KeyError if none found, ValueError if ambiguous."""
+    """Fetch a commit by short hash prefix. Raises KeyError if none found, ValueError if ambiguous."""
     with get_connection(db_path) as conn:
         rows = conn.execute(
             "SELECT * FROM commits WHERE id LIKE ?", (f"{prefix}%",)
@@ -119,7 +118,7 @@ def get_head(*, prompt_id: str, branch: str = "main", db_path: Path) -> Optional
 
 
 def walk_ancestors(*, commit_id: str, steps: int, db_path: Path) -> Commit:
-    """Walk up the parent chain `steps` times from `commit_id`. Raises ValueError if chain is shorter."""
+    """Walk up the parent chain `steps` times from `commit_id`. Raises ValueError if too short."""
     current_id = commit_id
     with get_connection(db_path) as conn:
         for i in range(steps):
