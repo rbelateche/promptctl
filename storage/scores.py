@@ -49,9 +49,7 @@ def insert_score(
         row_id = cursor.lastrowid
         conn.commit()
     with get_connection(db_path) as conn:
-        row = conn.execute(
-            "SELECT * FROM eval_scores WHERE id = ?", (row_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM eval_scores WHERE id = ?", (row_id,)).fetchone()
     return _row_to_score(row)
 
 

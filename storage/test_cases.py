@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -54,9 +54,7 @@ def insert_test_case(
         row_id = cursor.lastrowid
         conn.commit()
     with get_connection(db_path) as conn:
-        row = conn.execute(
-            "SELECT * FROM test_cases WHERE id = ?", (row_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM test_cases WHERE id = ?", (row_id,)).fetchone()
     return _row_to_test_case(row)
 
 
@@ -89,9 +87,7 @@ def delete_test_case(*, id: int, db_path: Path) -> None:
 def toggle_test_case(*, id: int, active: bool, db_path: Path) -> TestCase:
     """Enable or disable a test case without deleting it."""
     with get_connection(db_path) as conn:
-        cursor = conn.execute(
-            "UPDATE test_cases SET active = ? WHERE id = ?", (active, id)
-        )
+        cursor = conn.execute("UPDATE test_cases SET active = ? WHERE id = ?", (active, id))
         conn.commit()
         if cursor.rowcount == 0:
             raise KeyError(f"Test case not found: {id}")

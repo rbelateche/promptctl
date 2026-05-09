@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=70", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "promptctl"
@@ -37,6 +37,7 @@ embeddings = ["sentence-transformers>=3"]
 dev = [
     "pytest>=8",
     "pytest-asyncio>=0.23",
+    "pytest-cov>=5",
     "mypy>=1.10",
     "ruff>=0.4",
     "types-PyYAML",
