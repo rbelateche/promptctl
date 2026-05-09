@@ -1,0 +1,40 @@
+# promptctl project config
+
+# Logical name for this prompt project
+name: customer-support
+
+# Prompt file to track (relative to project root)
+prompt_file: prompts/customer-support.txt
+
+# Default model for LLM calls
+model: gpt-4o
+
+# Test cases file (relative to project root)
+test_cases: test_cases.json
+
+# SQLite database path (relative to project root)
+db_path: .promptctl/db.sqlite
+
+# Eval configuration
+evals:
+  strategies:
+    - exact_match
+    - embedding_similarity
+    - llm_judge
+  judge_model: gpt-4o
+  embedding_model: text-embedding-3-small
+  metrics:
+    accuracy:
+      weight: 0.5
+    faithfulness:
+      weight: 0.3
+    latency:
+      weight: 0.2
+  thresholds:
+    accuracy: 0.80
+    faithfulness: 0.70
+
+# API server config
+api:
+  host: 0.0.0.0
+  port: 8000
