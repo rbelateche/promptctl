@@ -37,3 +37,4 @@ ui/dist/
 .ruff_cache/
 htmlcov/
 .coverage
+coverage.xml
