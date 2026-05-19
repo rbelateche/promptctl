@@ -95,18 +95,37 @@ def toggle_test_case(*, id: int, active: bool, db_path: Path) -> TestCase:
     return _row_to_test_case(row)
 
 
-def bulk_insert_from_file(*, prompt_id: str, path: Path, db_path: Path) -> list[TestCase]:
+def bulk_insert_from_file(
+    *,
+    prompt_id: str,
+    path: Path,
+    db_path: Path,
+    skip_existing: bool = False,
+) -> list[TestCase]:
     """
     Load test cases from a JSON file and insert them.
+
     Expected format: list of {input, expected, tags?}.
+    When ``skip_existing`` is True, cases whose (prompt_id, input, expected)
+    already exist in the DB are silently skipped.
     """
     raw: list[dict] = json.loads(path.read_text(encoding="utf-8"))
+
+    existing_keys: set[tuple[str, str]] = set()
+    if skip_existing:
+        current = list_test_cases(prompt_id=prompt_id, db_path=db_path)
+        existing_keys = {(tc.input, tc.expected) for tc in current}
+
     results: list[TestCase] = []
     for item in raw:
+        inp = item["input"]
+        exp = item["expected"]
+        if skip_existing and (inp, exp) in existing_keys:
+            continue
         tc = insert_test_case(
             prompt_id=prompt_id,
-            input=item["input"],
-            expected=item["expected"],
+            input=inp,
+            expected=exp,
             tags=item.get("tags"),
             db_path=db_path,
         )
