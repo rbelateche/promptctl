@@ -19,6 +19,7 @@ class EvalScore:
 
 
 def _row_to_score(row) -> EvalScore:
+    """Convert a sqlite3.Row from the eval_scores table into an EvalScore dataclass."""
     return EvalScore(
         id=row["id"],
         commit_id=row["commit_id"],
@@ -37,7 +38,16 @@ def insert_score(
     n_cases: int,
     db_path: Path,
 ) -> EvalScore:
-    """Insert a single eval score and return it."""
+    """
+    Insert a single eval score row and return it.
+
+    Args:
+        commit_id: Full SHA-256 id of the commit being scored.
+        metric:    Metric name (e.g. "accuracy", "faithfulness", "latency").
+        value:     Score value; 0.0–1.0 for ratios, seconds for latency.
+        n_cases:   Number of test cases used to compute this score.
+        db_path:   Path to the SQLite database file.
+    """
     with get_connection(db_path) as conn:
         cursor = conn.execute(
             """
@@ -54,7 +64,13 @@ def insert_score(
 
 
 def get_scores(*, commit_id: str, db_path: Path) -> list[EvalScore]:
-    """Return all eval scores for a given commit."""
+    """
+    Return all eval scores for a given commit, ordered by metric name.
+
+    Args:
+        commit_id: Full SHA-256 id of the commit.
+        db_path:   Path to the SQLite database file.
+    """
     with get_connection(db_path) as conn:
         rows = conn.execute(
             "SELECT * FROM eval_scores WHERE commit_id = ? ORDER BY metric",
@@ -64,7 +80,11 @@ def get_scores(*, commit_id: str, db_path: Path) -> list[EvalScore]:
 
 
 def get_scores_dict(*, commit_id: str, db_path: Path) -> dict[str, float]:
-    """Return scores as a {metric: value} dict for easy comparison."""
+    """
+    Return scores for a commit as a ``{metric: value}`` dict.
+
+    Convenience wrapper around ``get_scores`` for delta computations.
+    """
     return {s.metric: s.value for s in get_scores(commit_id=commit_id, db_path=db_path)}
 
 

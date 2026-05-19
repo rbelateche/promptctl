@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import typer
 
-from cli.commands import branch, check, commit, diff, init, log, rollback
+from cli.commands import branch, check, commit, diff, init, log, rollback, serve
 from cli.commands import eval as eval_cmd
 
 app = typer.Typer(
@@ -23,6 +23,7 @@ app.command("diff")(diff.diff)
 app.command("rollback")(rollback.rollback)
 app.command("eval")(eval_cmd.eval)
 app.command("check")(check.check)
+app.command("serve")(serve.serve)
 
 if __name__ == "__main__":
     app()
