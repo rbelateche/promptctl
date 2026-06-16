@@ -113,7 +113,7 @@ def get_score_history(
             WHERE c.prompt_id = ?
               AND c.branch = ?
               AND es.metric = ?
-            ORDER BY c.created_at ASC
+            ORDER BY c.created_at ASC, c.rowid ASC
             """,
             (prompt_id, branch, metric),
         ).fetchall()
