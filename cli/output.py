@@ -22,10 +22,12 @@ err_console = Console(stderr=True)
 
 
 def short_id(commit_id: str) -> str:
+    """Return the 7-character short hash used for display."""
     return commit_id[:7]
 
 
 def _score_color(delta: float) -> str:
+    """Map a score delta to a Rich colour string (green/red/yellow)."""
     if delta > 0.005:
         return "green"
     if delta < -0.005:
@@ -34,7 +36,11 @@ def _score_color(delta: float) -> str:
 
 
 def print_commit_row(commit: Commit, scores: dict[str, float] | None = None) -> None:
-    """Print a single compact commit summary line."""
+    """
+    Print a single compact commit summary line to stdout.
+
+    Includes the short hash, message, and optionally inline score values.
+    """
     sid = short_id(commit.id)
     score_parts = ""
     if scores:
@@ -45,7 +51,13 @@ def print_commit_row(commit: Commit, scores: dict[str, float] | None = None) -> 
 
 
 def print_log_table(commits: list[Commit], scores_by_id: dict[str, dict[str, float]]) -> None:
-    """Render a Rich table of commits with their eval scores."""
+    """
+    Render a Rich table listing commits with their eval scores.
+
+    Args:
+        commits:      List of commits to display, newest first.
+        scores_by_id: Mapping of commit id → {metric: value} for score columns.
+    """
     table = Table(show_header=True, header_style="bold", box=None, padding=(0, 1))
     table.add_column("hash", style="yellow", no_wrap=True)
     table.add_column("message")
@@ -76,7 +88,16 @@ def print_score_diff(
     results: list[EvalResult],
     parent_scores: dict[str, float] | None = None,
 ) -> None:
-    """Print eval results with deltas vs parent commit."""
+    """
+    Print a table of eval results with deltas vs the parent commit.
+
+    For latency, a negative delta (improvement) is coloured green.
+    For all other metrics, a positive delta is coloured green.
+
+    Args:
+        results:       EvalResult list from the latest eval run.
+        parent_scores: Optional {metric: value} dict for the parent commit.
+    """
     table = Table(show_header=True, header_style="bold", box=None, padding=(0, 2))
     table.add_column("metric", style="cyan")
     table.add_column("score", justify="right")
@@ -117,7 +138,18 @@ def print_diff_panel(
     from_ref: str,
     to_ref: str,
 ) -> None:
-    """Render diff lines and score delta in a Rich panel."""
+    """
+    Render a Rich panel showing line-level diff and score delta table.
+
+    Added lines are green, removed lines are red, context lines are dim.
+    Score deltas are shown below the diff panel with directional colouring.
+
+    Args:
+        diff_lines: Output of ``core.diff_engine.line_diff``.
+        delta:      Score deltas from ``core.diff_engine.score_delta``.
+        from_ref:   Human-readable label for the base commit.
+        to_ref:     Human-readable label for the target commit.
+    """
     text = Text()
     for line in diff_lines:
         if line.type == "add":
@@ -148,7 +180,13 @@ def print_diff_panel(
 
 
 def print_branch_table(branches: list[Branch], current: str) -> None:
-    """Render a list of branches, marking the active one."""
+    """
+    Render the list of branches, marking the active one with an asterisk.
+
+    Args:
+        branches: List of Branch objects to display.
+        current:  Name of the currently active branch.
+    """
     for branch in branches:
         prefix = "* " if branch.name == current else "  "
         tip = branch.head_id[:7] if branch.head_id else "—"
@@ -161,12 +199,15 @@ def print_branch_table(branches: list[Branch], current: str) -> None:
 
 
 def success(msg: str) -> None:
+    """Print a green success message to stdout."""
     console.print(f"[green]✓[/green] {msg}")
 
 
 def error(msg: str) -> None:
+    """Print a red error message to stderr."""
     err_console.print(f"[red]✗[/red] {msg}")
 
 
 def warn(msg: str) -> None:
+    """Print a yellow warning message to stdout."""
     console.print(f"[yellow]⚠[/yellow] {msg}")

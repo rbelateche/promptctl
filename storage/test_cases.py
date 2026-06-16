@@ -21,6 +21,7 @@ class TestCase:
 
 
 def _row_to_test_case(row) -> TestCase:
+    """Convert a sqlite3.Row from the test_cases table into a TestCase dataclass."""
     raw_tags = row["tags"]
     tags: list[str] = json.loads(raw_tags) if raw_tags else []
     return TestCase(
@@ -41,7 +42,16 @@ def insert_test_case(
     tags: Optional[list[str]] = None,
     db_path: Path,
 ) -> TestCase:
-    """Insert a test case and return it."""
+    """
+    Insert a new test case row and return it.
+
+    Args:
+        prompt_id: Logical name of the prompt this test case belongs to.
+        input:     User message sent to the LLM.
+        expected:  Expected LLM output (used by exact match and LLM judge).
+        tags:      Optional list of string labels for filtering (e.g. ["refund"]).
+        db_path:   Path to the SQLite database file.
+    """
     tags_json = json.dumps(tags) if tags else None
     with get_connection(db_path) as conn:
         cursor = conn.execute(
@@ -64,7 +74,14 @@ def list_test_cases(
     active_only: bool = True,
     db_path: Path,
 ) -> list[TestCase]:
-    """List test cases for a prompt, optionally filtering to active only."""
+    """
+    List test cases for a prompt.
+
+    Args:
+        prompt_id:   Logical name of the prompt.
+        active_only: When True (default), only active test cases are returned.
+        db_path:     Path to the SQLite database file.
+    """
     query = "SELECT * FROM test_cases WHERE prompt_id = ?"
     params: list = [prompt_id]
     if active_only:
@@ -76,7 +93,12 @@ def list_test_cases(
 
 
 def delete_test_case(*, id: int, db_path: Path) -> None:
-    """Hard-delete a test case by id. Raises KeyError if not found."""
+    """
+    Hard-delete a test case by id.
+
+    Raises:
+        KeyError: If no test case with the given id exists.
+    """
     with get_connection(db_path) as conn:
         cursor = conn.execute("DELETE FROM test_cases WHERE id = ?", (id,))
         conn.commit()
@@ -85,7 +107,17 @@ def delete_test_case(*, id: int, db_path: Path) -> None:
 
 
 def toggle_test_case(*, id: int, active: bool, db_path: Path) -> TestCase:
-    """Enable or disable a test case without deleting it."""
+    """
+    Enable or disable a test case without deleting it.
+
+    Args:
+        id:     Primary key of the test case.
+        active: True to enable, False to disable.
+        db_path: Path to the SQLite database file.
+
+    Raises:
+        KeyError: If no test case with the given id exists.
+    """
     with get_connection(db_path) as conn:
         cursor = conn.execute("UPDATE test_cases SET active = ? WHERE id = ?", (active, id))
         conn.commit()

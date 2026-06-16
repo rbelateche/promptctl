@@ -18,6 +18,7 @@ class Branch:
 
 
 def _row_to_branch(row) -> Branch:
+    """Convert a sqlite3.Row from the branches table into a Branch dataclass."""
     return Branch(
         name=row["name"],
         prompt_id=row["prompt_id"],
@@ -33,7 +34,18 @@ def create_branch(
     head_id: Optional[str] = None,
     db_path: Path,
 ) -> Branch:
-    """Create a new branch. Raises ValueError if it already exists."""
+    """
+    Create a new branch row and return it.
+
+    Args:
+        name:      Branch name (e.g. "experiment/formal-tone").
+        prompt_id: Logical name of the prompt this branch belongs to.
+        head_id:   Optional initial HEAD commit id (None for empty branch).
+        db_path:   Path to the SQLite database file.
+
+    Raises:
+        ValueError: If a branch with the same name already exists for this prompt.
+    """
     with get_connection(db_path) as conn:
         try:
             conn.execute(
@@ -54,7 +66,12 @@ def create_branch(
 
 
 def get_branch(*, name: str, prompt_id: str, db_path: Path) -> Branch:
-    """Fetch a branch by name and prompt_id. Raises KeyError if not found."""
+    """
+    Fetch a branch by name and prompt_id.
+
+    Raises:
+        KeyError: If no branch with the given name exists for this prompt.
+    """
     with get_connection(db_path) as conn:
         row = conn.execute(
             "SELECT * FROM branches WHERE name = ? AND prompt_id = ?",
@@ -66,7 +83,13 @@ def get_branch(*, name: str, prompt_id: str, db_path: Path) -> Branch:
 
 
 def list_branches(*, prompt_id: str, db_path: Path) -> list[Branch]:
-    """List all branches for a prompt, ordered by creation time."""
+    """
+    List all branches for a prompt, ordered by creation time (oldest first).
+
+    Args:
+        prompt_id: Logical name of the prompt.
+        db_path:   Path to the SQLite database file.
+    """
     with get_connection(db_path) as conn:
         rows = conn.execute(
             "SELECT * FROM branches WHERE prompt_id = ? ORDER BY created_at",
@@ -76,7 +99,18 @@ def list_branches(*, prompt_id: str, db_path: Path) -> list[Branch]:
 
 
 def update_head(*, name: str, prompt_id: str, head_id: str, db_path: Path) -> Branch:
-    """Update the head commit pointer of a branch. Raises KeyError if branch not found."""
+    """
+    Advance the head pointer of a branch to a new commit.
+
+    Args:
+        name:      Branch name.
+        prompt_id: Logical name of the prompt.
+        head_id:   Full SHA-256 id of the new HEAD commit.
+        db_path:   Path to the SQLite database file.
+
+    Raises:
+        KeyError: If the branch does not exist.
+    """
     with get_connection(db_path) as conn:
         cursor = conn.execute(
             "UPDATE branches SET head_id = ? WHERE name = ? AND prompt_id = ?",
@@ -94,7 +128,11 @@ def ensure_branch(
     prompt_id: str,
     db_path: Path,
 ) -> Branch:
-    """Return an existing branch or create it if it doesn't exist."""
+    """
+    Return an existing branch or create it if it does not exist.
+
+    Useful for idempotent branch initialisation before the first commit.
+    """
     try:
         return get_branch(name=name, prompt_id=prompt_id, db_path=db_path)
     except KeyError:
