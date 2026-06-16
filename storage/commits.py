@@ -120,7 +120,7 @@ def list_commits(
             """
             SELECT * FROM commits
             WHERE prompt_id = ? AND branch = ?
-            ORDER BY created_at DESC
+            ORDER BY created_at DESC, rowid DESC
             LIMIT ?
             """,
             (prompt_id, branch, limit),

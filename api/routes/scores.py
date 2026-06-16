@@ -34,6 +34,43 @@ class ScoreHistoryPoint(BaseModel):
     created_at: str
 
 
+@router.get("/scores/history", response_model=list[ScoreHistoryPoint])
+def get_score_history(
+    prompt_id: str,
+    metric: str,
+    branch: str = "main",
+    db_path: Path = Depends(get_db_path),
+) -> list[ScoreHistoryPoint]:
+    """
+    Return the history of a single metric across all commits on a branch.
+
+    Results are ordered oldest-first, suitable for plotting a time-series chart.
+
+    Note:
+        This route is declared *before* ``/scores/{commit_id}`` so that the
+        literal path ``/scores/history`` is not captured by the dynamic
+        ``{commit_id}`` parameter.
+
+    Args:
+        prompt_id: Logical name of the prompt project.
+        metric:    Metric name (e.g. ``accuracy``, ``faithfulness``, ``latency``).
+        branch:    Branch to query (default: ``main``).
+    """
+    rows = scores_storage.get_score_history(
+        prompt_id=prompt_id, branch=branch, metric=metric, db_path=db_path
+    )
+    return [
+        ScoreHistoryPoint(
+            commit_id=r["commit_id"],
+            short_id=r["short_id"],
+            message=r["message"],
+            value=r["value"],
+            created_at=r["created_at"],
+        )
+        for r in rows
+    ]
+
+
 @router.get("/scores/{commit_id}", response_model=list[ScoreOut])
 def get_scores(
     commit_id: str,
@@ -64,36 +101,4 @@ def get_scores(
             created_at=s.created_at,
         )
         for s in scores
-    ]
-
-
-@router.get("/scores/history", response_model=list[ScoreHistoryPoint])
-def get_score_history(
-    prompt_id: str,
-    metric: str,
-    branch: str = "main",
-    db_path: Path = Depends(get_db_path),
-) -> list[ScoreHistoryPoint]:
-    """
-    Return the history of a single metric across all commits on a branch.
-
-    Results are ordered oldest-first, suitable for plotting a time-series chart.
-
-    Args:
-        prompt_id: Logical name of the prompt project.
-        metric:    Metric name (e.g. ``accuracy``, ``faithfulness``, ``latency``).
-        branch:    Branch to query (default: ``main``).
-    """
-    rows = scores_storage.get_score_history(
-        prompt_id=prompt_id, branch=branch, metric=metric, db_path=db_path
-    )
-    return [
-        ScoreHistoryPoint(
-            commit_id=r["commit_id"],
-            short_id=r["short_id"],
-            message=r["message"],
-            value=r["value"],
-            created_at=r["created_at"],
-        )
-        for r in rows
     ]
